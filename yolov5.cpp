@@ -22,6 +22,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <stdio.h>
 #include <vector>
+#include <fstream>
 
 ncnn::Net yolov5;
 
