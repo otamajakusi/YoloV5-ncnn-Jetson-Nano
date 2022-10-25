@@ -470,6 +470,7 @@ int main(int argc, char** argv)
     yolov5.load_param("yolov5s.param");
     yolov5.load_model("yolov5s.bin");
 
+    auto start = std::chrono::high_resolution_clock::now();
     int frame_count = 0;
     float fps = -1;
     int total_frames = 0;
