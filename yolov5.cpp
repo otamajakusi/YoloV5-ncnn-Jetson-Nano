@@ -17,6 +17,7 @@
 #include "layer.h"
 #include "net.h"
 
+#include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -455,7 +456,11 @@ int main(int argc, char** argv)
     const char* imagepath = argv[1];
 
     cv::Mat m;
-    cv::VideoCapture cap(0);
+    cv::VideoCapture cap(0, cv::CAP_V4L2);
+    cap.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('Y','U','Y','V'));
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    cap.set(cv::CAP_PROP_FPS, 25);
     if (!cap.isOpened())
     {
         std::cerr << "Error opening video file\n";
