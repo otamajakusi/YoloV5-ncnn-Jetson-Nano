@@ -453,10 +453,11 @@ int main(int argc, char** argv)
 
     const char* imagepath = argv[1];
 
-    cv::Mat m = cv::imread(imagepath, 1);
-    if (m.empty())
+    cv::Mat m;
+    cv::VideoCapture cap(0);
+    if (!cap.isOpened())
     {
-        fprintf(stderr, "cv::imread %s failed\n", imagepath);
+        std::cerr << "Error opening video file\n";
         return -1;
     }
 
@@ -469,13 +470,55 @@ int main(int argc, char** argv)
     yolov5.load_param("yolov5s.param");
     yolov5.load_model("yolov5s.bin");
 
-    std::vector<Object> objects;
-    detect_yolov5(m, objects);
-    draw_objects(m, objects);
+    int frame_count = 0;
+    float fps = -1;
+    int total_frames = 0;
 
-    cv::imshow("Jetson Nano",m);
-//    cv::imwrite("output.jpg",m);
-    cv::waitKey(0);
+    while (true)
+    {
+        cap.read(m);
+        if (m.empty())
+        {
+            std::cout << "End of stream\n";
+            break;
+        }
 
+
+        std::vector<Object> objects;
+        detect_yolov5(m, objects);
+        draw_objects(m, objects);
+
+        frame_count++;
+        total_frames++;
+
+        if (frame_count >= 30)
+        {
+
+            auto end = std::chrono::high_resolution_clock::now();
+            fps = frame_count * 1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+            frame_count = 0;
+            start = std::chrono::high_resolution_clock::now();
+        }
+
+        if (fps > 0)
+        {
+
+            std::ostringstream fps_label;
+            fps_label << std::fixed << std::setprecision(2);
+            fps_label << "FPS: " << fps;
+            std::string fps_label_str = fps_label.str();
+
+            cv::putText(m, fps_label_str.c_str(), cv::Point(10, 25), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+        }
+
+        cv::imshow("Jetson Nano",m);
+        if (cv::waitKey(1) != -1)
+        {
+            cap.release();
+            std::cout << "finished by user\n";
+            break;
+        }
+    }
     return 0;
 }
